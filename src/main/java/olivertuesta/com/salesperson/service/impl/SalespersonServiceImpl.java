@@ -1,13 +1,18 @@
 package olivertuesta.com.salesperson.service.impl;
 
+import jakarta.persistence.EntityNotFoundException;
+import olivertuesta.com.salesperson.dto.SalespersonDto;
 import olivertuesta.com.salesperson.model.Salesperson;
 import olivertuesta.com.salesperson.repository.SalespersonRepository;
 import olivertuesta.com.salesperson.service.SalespersonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SalespersonServiceImpl implements SalespersonService {
@@ -17,8 +22,8 @@ public class SalespersonServiceImpl implements SalespersonService {
 
 
     @Override
-    public List<Salesperson> findAll() {
-        return salespersonRepository.findAll();
+    public Page<Salesperson> findAll(Pageable pageable) {
+        return salespersonRepository.findAll(pageable);
     }
 
     @Override
@@ -37,37 +42,67 @@ public class SalespersonServiceImpl implements SalespersonService {
     }
 
     @Override
-    public Salesperson update(Salesperson salesperson) {
-        return salespersonRepository.save(salesperson);
+    public Salesperson update(Long salespersonId, SalespersonDto updatedSalespersonDto) {
+        Salesperson existingSalesperson = salespersonRepository.findById(salespersonId)
+                .orElseThrow(() -> new EntityNotFoundException("Salesperson with ID " + salespersonId + " not found"));
+
+        Salesperson updatedSalesperson = SalespersonDto.toEntity(updatedSalespersonDto);
+
+        existingSalesperson.setName(updatedSalesperson.getName());
+        existingSalesperson.setRegistrationNumber(updatedSalesperson.getRegistrationNumber());
+        existingSalesperson.setRegistrationStartDate(updatedSalesperson.getRegistrationStartDate());
+        existingSalesperson.setRegistrationEndDate(updatedSalesperson.getRegistrationEndDate());
+        existingSalesperson.setEstateAgentName(updatedSalesperson.getEstateAgentName());
+        existingSalesperson.setEstateAgentLicenseNumber(updatedSalesperson.getEstateAgentLicenseNumber());
+
+        return salespersonRepository.save(existingSalesperson);
     }
 
     @Override
-    public List<Salesperson> findByNameContainingIgnoreCase(String name) {
-        return salespersonRepository.findByNameContainingIgnoreCase(name);
+    public List<SalespersonDto> findByNameContainingIgnoreCase(String name) {
+        List<Salesperson> salespersons = salespersonRepository.findByNameContainingIgnoreCase(name);
+        return salespersons.stream()
+                .map(SalespersonDto::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<Salesperson> findByRegistrationNumberContainingIgnoreCase(String registrationNumber) {
-        return salespersonRepository.findByRegistrationNumberContainingIgnoreCase(registrationNumber);
+    public List<SalespersonDto> findByRegistrationNumberContainingIgnoreCase(String registrationNumber) {
+        List<Salesperson> salespersons = salespersonRepository.findByRegistrationNumberContainingIgnoreCase(registrationNumber);
+        return salespersons.stream()
+                .map(SalespersonDto::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<Salesperson> findByEstateAgentNameContainingIgnoreCase(String estateAgentName) {
-        return salespersonRepository.findByEstateAgentNameContainingIgnoreCase(estateAgentName);
+    public List<SalespersonDto> findByEstateAgentNameContainingIgnoreCase(String estateAgentName) {
+        List<Salesperson> salespersons = salespersonRepository.findByEstateAgentNameContainingIgnoreCase(estateAgentName);
+        return salespersons.stream()
+                .map(SalespersonDto::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<Salesperson> findByEstateAgentLicenseNumberContainingIgnoreCase(String estateAgentLicenseNumber) {
-        return salespersonRepository.findByEstateAgentLicenseNumberContainingIgnoreCase(estateAgentLicenseNumber);
+    public List<SalespersonDto> findByEstateAgentLicenseNumber(String estateAgentLicenseNumber) {
+        List<Salesperson> salespersons = salespersonRepository.findByEstateAgentLicenseNumber(estateAgentLicenseNumber);
+        return salespersons.stream()
+                .map(SalespersonDto::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<Salesperson> findByRegistrationStartDateBetween(LocalDate startDate, LocalDate endDate) {
-        return salespersonRepository.findByRegistrationStartDateBetween(startDate, endDate);
+    public List<SalespersonDto> findByRegistrationStartDateBetween(LocalDate startDate, LocalDate endDate) {
+        List<Salesperson> salespersons = salespersonRepository.findByRegistrationStartDateBetween(startDate, endDate);
+        return salespersons.stream()
+                .map(SalespersonDto::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<Salesperson> findByRegistrationEndDateBetween(LocalDate startDate, LocalDate endDate) {
-        return salespersonRepository.findByRegistrationEndDateBetween(startDate, endDate);
+    public List<SalespersonDto> findByRegistrationEndDateBetween(LocalDate startDate, LocalDate endDate) {
+        List<Salesperson> salespersons = salespersonRepository.findByRegistrationEndDateBetween(startDate, endDate);
+        return salespersons.stream()
+                .map(SalespersonDto::fromEntity)
+                .collect(Collectors.toList());
     }
 }
